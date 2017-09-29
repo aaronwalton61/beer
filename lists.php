@@ -13,7 +13,7 @@ include 'database/config.php';
 include 'database/opendb.php';
 
 $query = "SELECT * FROM `BeerLists`";
-$list = mysql_query($query);
+$list = $conn->query($query);
 ?>
 <div data-role="page" id="Cellar" class="">
     <div data-role="header">
@@ -23,21 +23,21 @@ $list = mysql_query($query);
     </div>
     <ul data-role="listview" id="Lists" title="List Totals" class="panel">
 <?php
-while($row = mysql_fetch_array($list, MYSQL_ASSOC))
+while($row = $list->fetch_assoc())
 { 
 	if ($row['Name'] != "None" && $row['Name'] != "Home")
 	{
 		$query  = "SELECT Beer.Name, Beer.beer_id FROM Beer INNER JOIN BeerServings ON Beer.beer_id = BeerServings.beer_id WHERE BeerServings.Date NOT LIKE '0000-00-00' AND BeerServings.List='".$row['Name']."'";
-		$result = mysql_query($query);
-		$total = mysql_num_rows($result);
+		$result = $conn->query($query);
+		$total = $result->num_rows;
 ?>
 <li><a href="getlist.php?list=<?php echo $row['Name']?>"><img src="images\<?php echo $row['Graphic'];?>"><h2>&nbsp;<?php echo $row['Name']; ?></h2><span class="ui-li-count"><?php echo $total; ?></span></a></li>
 <?php
-		mysql_free_result($result);
+	$result->free();
 
 	}
 }
-mysql_free_result($list);
+$list->free();
 
 ?>
 </ul>

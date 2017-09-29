@@ -84,14 +84,14 @@ if ( $beerid != "" || $servingid != "" )
     else
         $query = $query . " WHERE id='{$servingid}'";
 
-    $result = mysql_query($query);
+    $result = $conn->query($query);
 
     if ( $beerid != "" )
     {
         $query = "UPDATE BeerServings SET Name2='{$beername}' WHERE beer_id='{$beerid}'";
-        $result = mysql_query($query);
+        $result = $conn->query($query);
     }
-mysql_free_result ($result);
+$result->free();
 }
 
 include 'database/closedb.php';

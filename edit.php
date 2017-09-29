@@ -14,7 +14,7 @@ $beerid = $_GET['beer'];
 $servingid = $_GET['serving'];
 
 $query = "SELECT * FROM `BeerServingTypes`";
-$servingtype = mysql_query($query);
+$servingtype = $conn->query($query);
 
 if ( $beerid != "" || $servingid != "" )
 {
@@ -22,10 +22,10 @@ if ($beerid != "")
 {
     //Query of Beer to Edit
     $query  = "SELECT * FROM Beer WHERE beer_id='{$beerid}'";
-    $result = mysql_query($query);
-    $count = mysql_num_rows($result);
+    $result = $conn->query($query);
+    $count = $result->num_rows;
 
-    $row = mysql_fetch_array($result, MYSQL_ASSOC)
+    $row = $result->fetch_assoc();
 ?>
 <div data-role="dialog" id="edit" class="ui-body ui-body-a">
     <div data-role="header">
@@ -60,7 +60,7 @@ if ($beerid != "")
 	<select name="serving" id="serving" title="Serving Type" size="1" data-mini="true">
       <option value=''>None</option>
 	<?php
-	while($row1 = mysql_fetch_array($servingtype, MYSQL_ASSOC))
+	while($row1 = $servingtype->fetch_assoc())
 	{ 
 	   if  ($row['CellarServing'] == $row1['Name'])
 	       $sel=" Selected";
@@ -95,16 +95,16 @@ if ($beerid != "")
 else
 {
 $query  = "SELECT * FROM BeerServings WHERE id='{$servingid}'";
-$result = mysql_query($query);
-$count = mysql_num_rows($result);
+$result = $conn->query($query);
+$count = $result->num_rows;
 
-$row = mysql_fetch_array($result, MYSQL_ASSOC);
+$row = $result->fetch_assoc();
 
 $query = "SELECT * FROM `BeerLocations`";
-$location = mysql_query($query);
+$location = $conn->query($query);
 
 $query = "SELECT * FROM `BeerLists`";
-$list = mysql_query($query);
+$list = $conn->query($query);
 ?>
 <div data-role="dialog" id="editserve" class="ui-body ui-body-a">
     <div data-role="header">
@@ -135,7 +135,7 @@ $list = mysql_query($query);
               <label for="serving">Serving:</label>
 	<select name="serving" id="serving" title="Serving Type" size="1" data-mini="true">
 	<?php
-	while($row1 = mysql_fetch_array($servingtype, MYSQL_ASSOC))
+	while($row1 = $servingtype->fetch_assoc())
 	{ 
 	   if  ($row['Serving'] == $row1['Name'])
 	       $sel=" Selected";
@@ -147,7 +147,7 @@ $list = mysql_query($query);
               <label for="list">List:</label>
               <select name="list" id="list" title="Beer List" size="1" data-mini="true">
 	      <?php
-	      while($row1 = mysql_fetch_array($list, MYSQL_ASSOC))
+	      while($row1 = $list->fetch_assoc())
 	         { 
 	   if  ($row['List'] == $row1['Name'])
 	       $sel=" Selected";
@@ -159,7 +159,7 @@ $list = mysql_query($query);
               <label for="location">Location:</label>
 	      <select name="location" id="location" title="Location" size="1" data-mini="true">
 	      <?php
-	      while($row1 = mysql_fetch_array($location, MYSQL_ASSOC))
+	      while($row1 = $location->fetch_assoc())
                 { 
 	   if  ($row['Location'] == $row1['Name'])
 	       $sel=" Selected";
@@ -178,8 +178,8 @@ $list = mysql_query($query);
 <?php
     }
 }
-mysql_free_result ($servingtype);
-mysql_free_result ($result);
+$servingtype->free();
+$result->free();
 
 include 'database/closedb.php';
 ?>

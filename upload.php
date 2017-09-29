@@ -76,18 +76,18 @@ include 'database/opendb.php';
 
 $query = "INSERT INTO `BeerImages` (id, Name, Beer, type, Size, Content ) VALUES ( '', '$fileName', '$beername', '$fileType', '$fileSize', '$content')";
 
-mysql_query($query) or die('Error, query failed'); 
+$conn->query($query) or die('Error, query failed'); 
 echo "<p>";
 echo "<br>File $fileName uploaded<br>";
 
 $query = "SELECT * FROM BeerImages WHERE Name='{$fileName}'";
-$result = mysql_query($query) or die('Error, query failed getting photo_id'); 
-$row = mysql_fetch_array($result, MYSQL_ASSOC);
+$result = $conn->query($query) or die('Error, query failed getting photo_id'); 
+$row = $result->fetch_assoc();
 echo "<br>File id = ".$row['id']."<br>";
-
+$result->free();
 $query = "UPDATE Beer SET photo_id='{$row['id']}' WHERE Name = '{$beername}'";
 echo $query."<br><br>";
-mysql_query($query) or die('Error, query failed, UPDATE photo_id');
+$conn->query($query) or die('Error, query failed, UPDATE photo_id');
 
 echo " Done!";
 echo "</p>";

@@ -21,23 +21,14 @@ if ( $beerid != "" || $servingid != "" )
 {
     if ($beerid != "")
     {
-	    $query  = "DELETE FROM Beer WHERE beer_id='{$beerid}'";
+	    $query  = "DELETE FROM Beer WHERE beer_id='$beerid'";
     }
     else
     {
-	    $query  = "DELETE FROM BeerServings WHERE id='{$servingid}'";
+	    $query  = "DELETE FROM BeerServings WHERE id='$servingid'";
     }
-    $result = mysql_query($query);
-    mysql_free_result ($result);
+    $result = $conn->query($query);
+    $result->free();
 }
 include 'database/closedb.php';
 ?>
-
-<div id="Status" data-role="page">
-    <h2>Deleted Beer or Serving</h2>
-    <ul data-role="viewlist">
-      <li>Deleted Beer <?php echo $beerid; ?>Deleted</li>
-      <li>Deleted Beer Serving <?php echo $servingid; ?>Deleted</li>
-      <li><?php echo $query ?></li>
-    </ul>
-</div>

@@ -19,9 +19,9 @@ if ( beerid != "" )
     $review = "A: \nS: \nT: \nM: \nD:";
 
     $query = "SELECT * FROM Beer WHERE beer_id='{$beerid}'";
-    $new = mysql_query($query) or die('Query Error, query failed');
-    $row = mysql_fetch_array($new, MYSQL_ASSOC);
-    mysql_free_result($new);
+    $new = $conn->query($query) or die('Query Error, query failed');
+    $row = $new->fetch_assoc();
+    $new->free();
 
     // Need to change this so it works and doesn't duplicate the single quote
     $name = str_replace("'", "''", $row['Name']);
@@ -46,8 +46,8 @@ if ( beerid != "" )
              $query1="";
        }
     }
+    $new = $conn->query($query) or die('Insert Error, insert query failed');
 ?>
-
     <div id="Status" data-role="page">
         <h2>Add Serving</h2>
         <ul data-role="viewlist">
@@ -56,14 +56,13 @@ if ( beerid != "" )
           <li>New Serving <?php echo $row['Name'];?> Serving added</li>
           <li>id <?php echo $row['beer_id'];?></li>
 <?php
-    $new = mysql_query($query) or die('Insert Error, insert query failed');
-    mysql_free_result($new);
+    $new->free();
 
     // increment the cellared count
     if ($query1 != "")
     {
-        $new = mysql_query($query1) or die('Insert Error, insert query failed');
-        mysql_free_result($new);
+        $new = $conn->query($query1) or die('Insert Error, insert query failed');
+        $new->free();
 ?>
         <li class=group>Update Cellar</li>
           <li>New Beer <?php echo $row['Name'];?> Serving added cellared <?php echo $row['cellared'];?></li>

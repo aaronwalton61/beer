@@ -18,14 +18,14 @@ $table = $_GET['table'];
 
 $query  = "SELECT * FROM {$table}";
 
-$result = mysql_query($query);
-$count = mysql_num_rows($result);
+$result = $conn->query($query);
+$count = $result->num_rows;
 
-while ($row = mysql_fetch_array($result, MYSQL_ASSOC))
+while ($row = $result->fetch_assoc())
 {
     echo "<li>".$row['Name']."</li>";
 }
-
+$result->free();
 
 include 'database/closedb.php';
 ?>

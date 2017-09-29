@@ -21,36 +21,29 @@ header('Location: login.php');
   <meta name="apple-mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-status-bar-style" content="black" />
 
-<!--  <link rel="stylesheet" href="http://code.jquery.com/mobile/1.3.2/jquery.mobile-1.3.2.min.css" />
-  <script src="http://code.jquery.com/jquery-1.10.2.min.js"></script>
-  <script src="http://code.jquery.com/mobile/1.3.2/jquery.mobile-1.3.2.min.js"></script>
--->
-
 <link rel="stylesheet" href="http://code.jquery.com/mobile/1.4.5/jquery.mobile-1.4.5.min.css" />
 <script src="http://code.jquery.com/jquery-1.11.1.min.js"></script>
 <script src="http://code.jquery.com/mobile/1.4.5/jquery.mobile-1.4.5.min.js"></script>
   
-<!--
-	<link rel="stylesheet" href="css/jquery.swipeButton.css" />
-	<script src="js/jquery.swipeButton.js"></script>
--->
-
 	<link rel="stylesheet" href="css/swipe.css" />
 	<script src="js/swipe.js"></script>
   
-  <script type="text/javascript" src="showhint.js"></script>
+<!--  <script type="text/javascript" src="showhint.js"></script>  -->
 
 </head>
 
 <body>
 
 <?php 
+//    echo "<!-- 1" . $query . "-->";
 include 'common.php';
+//    echo "<!-- 2" . $query . "-->";
 
 // Load up the DB config and open it up.
 //**************************************
 include 'database/config.php';
 include 'database/opendb.php';
+//    echo "<!-- 3" . $query . "-->";
 
 // This makes a page for alphabetic index of beers
 // Not used
@@ -66,29 +59,37 @@ function AlphaIndexedBeerPage()
     //while ($index++ < 'Z')
     //echo "</ul>";
 }
-
-static $servingtype = null;
-static $location = null;
-static $list = null;
-
-static $cellar = null; // number of beers in cellar
-static $deelcellar = null;  //number of beers in deep cellar
-static $drank = null; //total number of different beers drank
+$servingtype = null;
+//static $cellar = null; // number of beers in cellar
+//static $deepcellar = null;  //number of beers in deep cellar
+//static $drank = null; //total number of different beers drank
 
 // Get all the lists of items like serving types, Locations, and BeerLists
 //************************************************************************
 function GetLists()
 {
-    global $servingtype, $location, $list;
+    $query = "SELECT * FROM BeerServingTypes";
+    echo "<!-- 4-1" . $query . "-->";
+    if (!$servingtype = $GLOBALS["conn"]->query($query)) {
+        // Oh no! The query failed. 
+        echo "Sorry, the website is experiencing problems.";
 
-    $query = "SELECT * FROM `BeerServingTypes`";
-    $servingtype = mysql_query($query);
+        // Again, do not do this on a public site, but we'll show you how
+        // to get the error information
+        echo "Error: Our query failed to execute and here is why: \n";
+        echo "Query: " . $query . "\n";
+        echo "Errno: " . $GLOBALS["conn"]->errno . "\n";
+        echo "Error: " . $GLOBALS["conn"]->error . "\n";
+        exit;
+    }
 
-    $query = "SELECT * FROM `BeerLocations`";
-    $location = mysql_query($query);
+    $query = "SELECT * FROM BeerLocations";
+    echo "<!-- 4-2" . $query . "-->";
+    $location = $GLOBALS["conn"]->query($query);
 
-    $query = "SELECT * FROM `BeerLists`";
-    $list = mysql_query($query);
+    $query = "SELECT * FROM BeerLists";
+    echo "<!-- 4-3" . $query . "-->";
+    $beerlist = $GLOBALS["conn"]->query($query);
 }
 
 //---------***************----------**********
@@ -96,11 +97,31 @@ function GetLists()
 //---------***************----------**********
 function GetCellar()
 {
-    global $cellar;
-    
-    $query  = "SELECT * FROM Beer WHERE Beer.cellared > 0 AND Beer.ExtendedCellar < 1 ORDER BY Beer.CellarDate";
-    $result = mysql_query($query);
-    $cellar = mysql_num_rows($result);
+    $sql = "SELECT * FROM Beer WHERE Beer.cellared > 0 AND Beer.ExtendedCellar < 1 ORDER BY Beer.CellarDate";
+    if (!$result = $GLOBALS["conn"]->query($sql)) {
+        // Oh no! The query failed. 
+        echo "Sorry, the website is experiencing problems.";
+
+        // Again, do not do this on a public site, but we'll show you how
+        // to get the error information
+        echo "Error: Our query failed to execute and here is why: \n";
+        echo "Query: " . $sql . "\n";
+        echo "Errno: " . $GLOBALS["conn"]->errno . "\n";
+        echo "Error: " . $GLOBALS["conn"]->error . "\n";
+        exit;
+    }
+
+// Phew, we made it. We know our MySQL connection and query 
+// succeeded, but do we have a result?
+if ($result->num_rows === 0) {
+    // Oh, no rows! Sometimes that's expected and okay, sometimes
+    // it is not. You decide. In this case, maybe actor_id was too
+    // large? 
+    echo "We could not find a match for ID, sorry about that. Please try again.";
+    exit;
+}
+
+    $cellar = $result->num_rows;
 
     $last = ' ';
 
@@ -114,7 +135,7 @@ function GetCellar()
 <?php
      echo "<ul data-role='listview' data-filter='true' id='Cellar' title='Cellar - {$cellar}' class='panel'>";
 
-    while($row = mysql_fetch_array($result, MYSQL_ASSOC))
+    while($row = $result->fetch_assoc())
     {
        $color = "Black";
 
@@ -144,7 +165,7 @@ function GetCellar()
        </lu></nav></footer>
 </div>
 <?php
-    mysql_free_result($result);
+    $result->free();
 }
 
 //---------***************----------**********
@@ -152,12 +173,31 @@ function GetCellar()
 //---------***************----------**********
 function GetDeepCellar()
 {
-    global $deepcellar;
+    $sql  = "SELECT * FROM Beer WHERE Beer.cellared > 0 AND Beer.ExtendedCellar > 0 ORDER BY Beer.CellarDate";
+    if (!$result = $GLOBALS["conn"]->query($sql)) {
+    // Oh no! The query failed. 
+    echo "Sorry, the website is experiencing problems.";
 
-    $query  = "SELECT * FROM Beer WHERE Beer.cellared > 0 AND Beer.ExtendedCellar > 0 ORDER BY Beer.CellarDate";
-    $result = mysql_query($query);
-    $deepcellar = mysql_num_rows($result);
+    // Again, do not do this on a public site, but we'll show you how
+    // to get the error information
+    echo "Error: Our query failed to execute and here is why: \n";
+    echo "Query: " . $sql . "\n";
+    echo "Errno: " . $GLOBALS["conn"]->errno . "\n";
+    echo "Error: " . $GLOBALS["conn"]->error . "\n";
+    exit;
+}
 
+// Phew, we made it. We know our MySQL connection and query 
+// succeeded, but do we have a result?
+if ($result->num_rows === 0) {
+    // Oh, no rows! Sometimes that's expected and okay, sometimes
+    // it is not. You decide. In this case, maybe actor_id was too
+    // large? 
+    echo "We could not find a match for ID, sorry about that. Please try again.";
+    exit;
+}
+
+    $deepcellar = $result->num_rows;
     $last = ' ';
 
 ?>
@@ -171,7 +211,7 @@ function GetDeepCellar()
 <?php
     echo "<ul data-role='listview' data-filter='true' id='DeepCellar' title='DeepCellar - {$deepcellar}' class='panel'>";
 
-    while($row = mysql_fetch_array($result, MYSQL_ASSOC))
+    while($row = $result->fetch_assoc())
     {
        $color = "Black";
 
@@ -201,7 +241,7 @@ function GetDeepCellar()
        </lu></nav></footer>
 </div>
 <?php
-    mysql_free_result($result);
+    $result->free();
 }
 
 //---------***************----------**********
@@ -209,12 +249,33 @@ function GetDeepCellar()
 //---------***************----------**********
 function GetAllBeerDrank()
 {
-    global $drank;
-    
 /*    $query  = "SELECT DISTINCT Beer.Name, Beer.beer_id, Beer.photo_id, Beer.BeerAdvocate FROM Beer INNER JOIN BeerServings ON Beer.beer_id = BeerServings.beer_id WHERE BeerServings.Date NOT LIKE '0000-00-00' ORDER BY Beer.Name";*/
-    $query  = "SELECT Beer.Name, Beer.beer_id, Beer.photo_id, Beer.BeerAdvocate FROM Beer";
-    $result = mysql_query($query);
-    $drank = mysql_num_rows($result);
+    $sql  = "SELECT Beer.Name, Beer.beer_id, Beer.photo_id, Beer.BeerAdvocate FROM Beer";
+    if (!$result = $GLOBALS["conn"]->query($sql)) 
+    {
+        // Oh no! The query failed. 
+        echo "Sorry, the website is experiencing problems.";
+
+        // Again, do not do this on a public site, but we'll show you how
+        // to get the error information
+        echo "Error: Our query failed to execute and here is why: \n";
+        echo "Query: " . $sql . "\n";
+        echo "Errno: " . $GLOBALS["conn"]->errno . "\n";
+        echo "Error: " . $GLOBALS["conn"]->error . "\n";
+        exit;
+    }
+
+// Phew, we made it. We know our MySQL connection and query 
+// succeeded, but do we have a result?
+if ($result->num_rows === 0) {
+    // Oh, no rows! Sometimes that's expected and okay, sometimes
+    // it is not. You decide. In this case, maybe actor_id was too
+    // large? 
+    echo "We could not find a match for ID, sorry about that. Please try again.";
+    exit;
+}
+
+    $drank = $result->num_rows;
 
     //
     // Begin of all Drank Beers list, should we only do this if need be? it is long.
@@ -230,7 +291,7 @@ function GetAllBeerDrank()
     <div role="main" class="ui-content">
 <?php
     echo "<ul data-role='listview' data-filter='true' data-filter-reveal='true' id='Beers' data-autodividers='false' data-inset='true'>";
-    while($row = mysql_fetch_array($result, MYSQL_ASSOC))
+    while($row = $result->fetch_assoc())
     {
        $color = wherecolor($row['Date'], $row['Location']." ".$row['Serving']." ".$row['List']);
 
@@ -260,7 +321,7 @@ function GetAllBeerDrank()
        </lu></nav></footer>
 </div>
 <?php
-    mysql_free_result($result);
+    $result->free();
 }
 
 //---------***************----------**********
@@ -268,8 +329,29 @@ function GetAllBeerDrank()
 //---------***************----------**********
 function GetLast100()
 {
-    $query  = "SELECT * FROM Beer INNER JOIN BeerServings ON Beer.beer_id = BeerServings.beer_id ORDER BY BeerServings.Date Desc Limit 100";
-    $result = mysql_query($query);
+    $sql  = "SELECT * FROM Beer INNER JOIN BeerServings ON Beer.beer_id = BeerServings.beer_id ORDER BY BeerServings.Date Desc Limit 100";
+    if (!$result = $GLOBALS["conn"]->query($sql)) {
+    // Oh no! The query failed. 
+    echo "Sorry, the website is experiencing problems.";
+
+    // Again, do not do this on a public site, but we'll show you how
+    // to get the error information
+    echo "Error: Our query failed to execute and here is why: \n";
+    echo "Query: " . $sql . "\n";
+    echo "Errno: " . $GLOBALS["conn"]->errno . "\n";
+    echo "Error: " . $GLOBALS["conn"]->error . "\n";
+    exit;
+}
+
+// Phew, we made it. We know our MySQL connection and query 
+// succeeded, but do we have a result?
+if ($result->num_rows === 0) {
+    // Oh, no rows! Sometimes that's expected and okay, sometimes
+    // it is not. You decide. In this case, maybe actor_id was too
+    // large? 
+    echo "We could not find a match for ID, sorry about that. Please try again.";
+    exit;
+}
 
 ?>
 <div data-role="page" id="Last100" class="">
@@ -281,7 +363,7 @@ function GetLast100()
     <div role="main" class="ui-content">
 <?php
     echo "<ul data-role='listview' id='swipelist' class='touch' data-icon='false' data-split-icon='delete'>";
-    while($row = mysql_fetch_array($result, MYSQL_ASSOC))
+    while($row = $result->fetch_assoc())
     {
        $color = wherecolor($row['Date'], $row['Location']." ".$row['Serving']." ".$row['List']);
 
@@ -324,59 +406,22 @@ function GetLast100()
 
 </div>
 <?php
-    mysql_free_result($result);
+    $result->free();
 }
-
 // Lets get all the "pages" read out of the database
 GetLists();
 GetCellar();
 GetDeepCellar();
 GetAllBeerDrank();
 GetLast100();
-
 ?>
-
-<!-- <div data-role="page" id="Main" class="">
-    <div data-role="header">
-        <a href="#About" data-icon="info">About</a>
-        <h1>Beers</h1>
-        <a href="#addit" data-icon="plus">Add</a>
-    </div>
-    
-  <ul data-role="listview" id="home" data-filter="true" class="panel" title="Beers <?php echo $drank."-".$cellar."-".$deepcellar; ?>" selected="true">
-      <li><img src="images\beerelements.png" align="left"><a href="#Cellar"><span>Beers</span><span class="ui-li-count"><?php echo $cellar; ?></span></a></li>
-      <li><img src="images\beerelements.png" align="left"><a href="#DeepCellar"><span>Cellared Beers</span><span class="ui-li-count"><?php echo $deepcellar; ?></span></a></li>
-      <li><img src="images\99 bottles.png" align="left"><a href="#Last100">Last 100</a></li>
-      <li><img src="images\beerelements.png" align="left"><a href="#Beers"><span>All Beers</span><span class="ui-li-count"><?php echo $drank; ?></span></a></li>
-  </ul>
-  <footer data-role="footer" data-position="fixed">
-     <nav data-role="navbar">
-        <ul>
-           <li><a href="#Beers">All Beers</a></li>
-           <li><a href="#Cellar">Cellar</a></li>
-           <li><a href="#Deep">Deep Cellar</a></li>
-           <li><a href="#Last100">Last100</a></li>
-           <li><a href="lists.php" data-icon="bars" data-iconpos="left">Lists</a></li>
-       </lu></nav></footer>
-</div>  -->
-
-<!-- <div data-role="page" class="">
-  <ul id="other" title="Other" class="panel">
-      <li class=group>Other</li>
-      <li><img src="images\beerelements.png" align="left"><a href="#update">Update</a></li>
-      <li><a href="#select_theme">Theme switcher</a></li>
-      <li><img src="images\beerelements.png" align="left"><a href="lists.php">Lists</a></li>
-      <li><a href="http://beeradvocate.com/user/trade_list/ImusBeer/?show=G" target="_webapp"><img src="images\Ba.png" align="left">Beer Advocate Got List</a></li>
-      <li><a href="#about"><img src="images\info.png" align="left" size="50%">About</a></li>
-      <li><a href="logout.php"><img src="images\info.png" align="left" size="50%">Logout</a></li>
-  </ul>  -->
 
 <div data-role="page" id="About" class="">
     <div id="about" title="About" class="panel">
       <h1>About My Beers</h1>
     </div>
     <div data-role="content">
-      <p><img src="http://aaronwalton.org/iui/iui/iui-logo-touch-icon.png"/>&nbsp;<img src="apple-touch-icon.png"/></p>
+      <p><img src="apple-touch-icon.png"/></p>
       <p>Sample Mobile Web App using the jQuery JavaScript Library</p>
       <table><tr><td>Color key:
 	<br>&nbsp;&nbsp;<font color=green>Green</font> at Home
@@ -426,30 +471,39 @@ GetLast100();
           <legend>Beer Serving, List & Location:</legend>
               <label for="serving">Serving:</label>
 	      <select name="serving" id="serving" title="Serving Type" placeholder="Serving Type" data-mini="true">
-              <?php
-              while($row1 = mysql_fetch_array($servingtype, MYSQL_ASSOC))
+<?php
+        $query = "SELECT * FROM BeerServingTypes";
+    echo "<!-- 4-1" . $query . "-->";
+            $servingtype = $GLOBALS["conn"]->query($query);
+            while($row1 = $servingtype->fetch_assoc())
 	        { 
 	           echo "<option value='".$row1['Name']."'>".$row1['Name']."</option>";
 	        }
-	      ?>
+?>
 	      </select>
               <label for="list">List:</label>
               <select name="list" id="list" title="Beer List" data-mini="true">
-	      <?php
-	      while($row1 = mysql_fetch_array($list, MYSQL_ASSOC))
-	         { 
+<?php
+            $query = "SELECT * FROM BeerLists";
+            echo "<!-- 4-3" . $query . "-->";
+            $beerlist = $GLOBALS["conn"]->query($query);
+            while($row1 = $beerlist->fetch_assoc())
+	        { 
 	            echo "<option value='".$row1['Name']."'>".$row1['Name']."</option>";
-	         }
-	      ?>
+	        }
+?>
 	      </select>
               <label for="location">Location:</label>
 	      <select name="location" id="location" title="Location" data-mini="true">
-	      <?php
-	      while($row1 = mysql_fetch_array($location, MYSQL_ASSOC))
-                { 
+<?php
+            $query = "SELECT * FROM BeerLocations";
+            echo "<!-- 4-2" . $query . "-->";
+            $location = $GLOBALS["conn"]->query($query);
+            while($row1 = $location->fetch_assoc())
+            { 
 	           echo "<option value='".$row1['Name']."'>".$row1['Name']."</option>";
 	        }
-              ?>
+?>
 	      </select>
     </fieldset>
 
@@ -478,9 +532,9 @@ GetLast100();
 </div>
 
 <?php
-mysql_free_result($servingtype);
-mysql_free_result($location);
-mysql_free_result($list);
+$servingtype->free();
+$location->free();
+$list->free();
 include 'database/closedb.php';
 ?>
  

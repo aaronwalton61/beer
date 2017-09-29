@@ -15,13 +15,13 @@ $servingid = $_GET['serving'];
 
 if ($beerid != "")
 {
-$query  = "SELECT * FROM Beer WHERE beer_id='{$beerid}'";
-$result = mysql_query($query);
-$count = mysql_num_rows($result);
+$query  = "SELECT * FROM Beer WHERE beer_id={$beerid}";
+$result = $conn->query($query);
+$count = $result->num_rows;
 
-$row = mysql_fetch_array($result, MYSQL_ASSOC);
+$row = $result->fetch_assoc();
 
-mysql_free_result($result);
+$result->free();
 ?>
 <div data-role="page" id="View">
 <div data-role="panel" id="mypanel" data-position="right" data-display="overlay">
@@ -44,12 +44,12 @@ mysql_free_result($result);
 <?php } ?>
     <li data-icon="plus"><a href="addserv.php?beer=<?php echo $beerid;?>">Add Serving</a></li>
 <?php
-$query = "SELECT * FROM BeerServings WHERE beer_id='{$beerid}' ORDER BY Date DESC";
-$result = mysql_query($query);
-$count = mysql_num_rows($result);
+$query = "SELECT * FROM BeerServings WHERE beer_id={$beerid} ORDER BY Date DESC";
+$result = $conn->query($query);
+$count = $result->num_rows;
 
     echo "<div data-role='collapsible' data-theme='b' data-content-theme='c'><h2>Beer Servings</h2><ul id='swipelist' data-role='listview' data-split-icon='gear' data-split-theme='a' data-inset='true'>";
-    while ($row = mysql_fetch_array($result, MYSQL_ASSOC))
+    while ($row = $result->fetch_assoc())
     {
          switch ( $row['Serving'] )
          {
@@ -72,6 +72,9 @@ $count = mysql_num_rows($result);
              break;
            case "TM Johns Creek":
              $icon = "TM3.png' width=20";
+             break;
+            case "Cummings":
+             $icon = "TM4.png' width=20";
              break;
            case "Taco Mac River":
              $icon = "tm-r.png' width=20";
@@ -128,7 +131,7 @@ $count = mysql_num_rows($result);
              echo "<li><a href='view.php?serving={$row['id']}'>".$row['Date']." ".$row['Serving']." ".$row['Vintage']."<span class='ui-li-aside'> ".$html_icon."</span></a><a href='edit.php?serving={$row['id']}'>Edit Serving</a></li>";
     }
     echo "</ul></div>";
-mysql_free_result($result);
+$result->free();
 ?>
 <fieldset class="ui-grid-a">
 
@@ -143,11 +146,11 @@ mysql_free_result($result);
 else 
 {
 $query  = "SELECT * FROM BeerServings WHERE id='{$servingid}'";
-$result = mysql_query($query);
-$count = mysql_num_rows($result);
+$result = $conn->query($query);
+$count = $result->num_rows;
 
-$row = mysql_fetch_array($result, MYSQL_ASSOC);
-mysql_free_result($result);
+$row = $result->fetch_assoc();
+$result->free();
 
          switch ( $row['List'] )
          {
@@ -159,6 +162,9 @@ mysql_free_result($result);
              break;
            case "TM Johns Creek":
              $icon = "TM3.png' width=20";
+             break;
+            case "Cummings":
+             $icon = "TM4.png' width=20";
              break;
            case "Taco Mac River":
              $icon = "tm-r.png' width=20";
